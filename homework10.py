@@ -26,7 +26,6 @@ class Record:
         self.name = name
         self.phones = [phone] if phone else []
         
-        # self.fields = {}
 
     def add_phone(self, phone_number):
         self.phones.append(phone_number)
@@ -41,26 +40,11 @@ class Record:
 
     def edit_phone(self, old_phone_number, new_phone_number):
         for phone in self.phones:
-            if phone.phone_number == old_phone_number:
-                phone.phone_number = new_phone_number
-                return f'Phone number for contact {self.name} is updated!'
+                if phone.phone_number == old_phone_number:
+                    phone.phone_number = new_phone_number
+                    return f'Phone number for contact {self.name} is updated!'
         return f'Phone number {old_phone_number} not found for contact {self.name}'
-
-    # def add_field(self, field_name, field_value):
-    #     self.fields[field_name] = field_value
-    #     return f'Field {field_name} added for contact {self.name}'
-
-    # def remove_field(self, field_name):
-    #     if field_name in self.fields:
-    #         del self.fields[field_name]
-    #         return f'Field {field_name} removed for contact {self.name}'
-    #     return f'Field {field_name} not found for contact {self.name}'
-
-    # def edit_field(self, field_name, new_field_value):
-    #     if field_name in self.fields:
-    #         self.fields[field_name] = new_field_value
-    #         return f'Field {field_name} updated for contact {self.name}'
-    #     return f'Field {field_name} not found for contact {self.name}'
+    
 
     def __str__(self):
         # phones_str = '\n'.join(str(phone) for phone in self.phones)
@@ -118,13 +102,15 @@ def phone(name):
         return f'Contact with name: {name} is not found!'
 
 
-def change(name, new_phone_number):
+def change(name,old_phone_number,new_phone_number):
     if name in contacts:
-        contacts[name] = new_phone_number
-        return f'Phone number for user {name} is changed to {new_phone_number}.'
-    else:
-        return f'User with name: {name} is not found!'
+        contacts[name] = old_phone_number
+        contacts[name] = (old_phone_number, new_phone_number)
+        return f'Contact with name: {name} , new phone number changed to  {new_phone_number} '
+    
+    return f'User with name: {name} is not found!'
 
+    
 
 def showall():
     # result = 'List of all contacts:\n'

@@ -1,4 +1,5 @@
 from collections import UserDict
+
 contacts = {}
 
 class Field:
@@ -18,38 +19,49 @@ class Name(Field):
     pass
 
 class Phone(Field):
-    pass
+    
+    def __init__(self, value):
+        super().__init__(value)
+        if not value.isdigit():
+            raise ValueError("Phone number must be a string of digits only")
 
+    def __eq__(self, other):
+        if isinstance(other, Phone):
+            return self.value == other.value
+        return False
+    
 class Record:
     
     def __init__(self, name, phone=None):
         self.name = name
-        self.phones = [phone] if phone else []
+        self.phones = {phone.value} if phone else set()
         
 
     def add_phone(self, phone_number):
-        self.phones.append(phone_number)
+        if not isinstance(phone_number, Phone):
+            phone_number = Phone(phone_number)
+        self.phones.add(phone_number.value)
         return f'Contact with name: {self.name} is added!'
 
     def remove_phone(self, phone_number):
-        for phone in self.phones:
-            if phone.phone_number == phone_number:
-                self.phones.remove(phone)
-                return f'Contact with name: {self.name} removed!'
+        if phone_number in self.phones:
+            self.phones.remove(phone_number)
+            return f'Contact with name: {self.name} removed!'
         return f'Phone number {phone_number} not found for contact {self.name}'
 
     def edit_phone(self, old_phone_number, new_phone_number):
         for phone in self.phones:
-                if phone.phone_number == old_phone_number:
-                    phone.phone_number = new_phone_number
-                    return f'Phone number for contact {self.name} is updated!'
-        return f'Phone number {old_phone_number} not found for contact {self.name}'
+            if str(phone) == old_phone_number:
+                new_phone = Phone(new_phone_number)
+                self.phones.add(new_phone.value)
+                return f'Phone number {old_phone_number} updated to {new_phone_number} for contact {self.name}'
+            return f'Phone number {old_phone_number} not found for contact {self.name}'
     
 
     def __str__(self):
-        # phones_str = '\n'.join(str(phone) for phone in self.phones)
-        # fields_str = '\n'.join(f'{field_name}: {field_value}' for field_name, field_value in self.fields.items())
-        return f'Name: {self.name}\nPhones:\n{",".join([str(p) for p in self.phones])}'
+
+        return f'Name: {self.name}\nPhones:\n{",".join(self.phones)}'
+
 
 class AddressBook(UserDict):
 
@@ -102,20 +114,33 @@ def phone(name):
         return f'Contact with name: {name} is not found!'
 
 
-def change(name,old_phone_number,new_phone_number):
-    if name in contacts:
-        contacts[name] = old_phone_number
-        contacts[name] = (old_phone_number, new_phone_number)
-        return f'Contact with name: {name} , new phone number changed to  {new_phone_number} '
-    
-    return f'User with name: {name} is not found!'
+def change(*args):
 
+    name = Name(args[0])
+    old_phone = args[1]
+    new_phone = args[2]
+    if name.value not in contacts.keys():
+        return f"Contact {name.value} not found"
+    if old_phone not in contacts[name.value].phones:
+        return f"Phone {old_phone} not found for {name.value}"
+    if new_phone in contacts[name.value].phones:
+        return "Phone already in list"
+    contacts[name.value].phones.remove(old_phone)
+    contacts[name.value].phones.add(new_phone)
+
+    return f"Contact {name.value} with phone number {old_phone} was updated with new phone number {new_phone}"
+
+    
+@input_error
+def add_phone(name, phone_number):
+    if name not in contacts:
+        return f'Contact {name} not found in the address book!'
+    contacts[name].phones.add(phone_number)
+    return f"New phone number {phone_number} added to the contact {name}"
     
 
 def showall():
-    # result = 'List of all contacts:\n'
-    # for name, phone_number in contacts.items():
-    #     result += f'{name}: {phone_number}\n'
+
     return contacts.show_all()
 
 
@@ -135,11 +160,13 @@ COMMANDS = {'hello': hello,
             'add': add_contact,
             'change': change,
             'phone': phone,
+            'new number': add_phone,
             'show all': showall, 
             'goodbye': close_bot,
             'close': close_bot, 
             'exit': close_bot 
             }
+
 
 
 def command_handler(text):
